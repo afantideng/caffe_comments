@@ -41,24 +41,31 @@ template <typename Dtype>
 void SigmoidCrossEntropyLossLayer<Dtype>::Forward_gpu(
     const vector<Blob<Dtype>*>& bottom, const vector<Blob<Dtype>*>& top) {
   // The forward pass computes the sigmoid outputs.
+  // 内嵌的 sigmoid 函数进行前向传播 (放入了 sigmoid_output_ 里)
   sigmoid_bottom_vec_[0] = bottom[0];
   sigmoid_layer_->Forward(sigmoid_bottom_vec_, sigmoid_top_vec_);
   // Compute the loss (negative log likelihood)
+  // 获取输入数据的像素点总数
   const int count = bottom[0]->count();
   // Stable version of loss computation from input data
+  // 获取只读输入数据和标签
   const Dtype* input_data = bottom[0]->gpu_data();
   const Dtype* target = bottom[1]->gpu_data();
   // Since this memory is not used for anything until it is overwritten
   // on the backward pass, we use it here to avoid having to allocate new GPU
   // memory to accumulate intermediate results in the kernel.
+  // 获取可变输入数据和标签
   Dtype* loss_data = bottom[0]->mutable_gpu_diff();
   Dtype* count_data = bottom[1]->mutable_gpu_diff();
   Dtype valid_count;
+
   // NOLINT_NEXT_LINE(whitespace/operators)
+  // ----- 前向传播计算loss -----
   SigmoidCrossEntropyLossForwardGPU<Dtype><<<CAFFE_GET_BLOCKS(count),
       CAFFE_CUDA_NUM_THREADS>>>(count, input_data, target, loss_data,
       has_ignore_label_, ignore_label_, count_data);
   // Only launch another CUDA kernel if we actually need the valid count.
+  // 如果normlize使用VALID模式,且有label无效的情况下, 才去认真地计算有效点数
   if (normalization_ == LossParameter_NormalizationMode_VALID &&
       has_ignore_label_) {
     caffe_gpu_asum(count, count_data, &valid_count);
@@ -66,7 +73,10 @@ void SigmoidCrossEntropyLossLayer<Dtype>::Forward_gpu(
     valid_count = count;
   }
   Dtype loss;
+
+  // 把每一个点的loss加和
   caffe_gpu_asum(count, loss_data, &loss);
+  // 归一化loss, 放入top[0]
   normalizer_ = get_normalizer(normalization_, valid_count);
   top[0]->mutable_cpu_data()[0] = loss / normalizer_;
 }
@@ -86,14 +96,19 @@ void SigmoidCrossEntropyLossLayer<Dtype>::Backward_gpu(
     const Dtype* target = bottom[1]->gpu_data();
     Dtype* bottom_diff = bottom[0]->mutable_gpu_diff();
     caffe_copy(count, sigmoid_output_data, bottom_diff);
+
+    // 点对点(element-wise)相减的操作
     caffe_gpu_axpy(count, Dtype(-1), target, bottom_diff);
+
     // Zero out gradient of ignored targets.
     if (has_ignore_label_) {
       // NOLINT_NEXT_LINE(whitespace/operators)
       SigmoidCrossEntropyLossIgnoreDiffGPU<Dtype><<<CAFFE_GET_BLOCKS(count),
         CAFFE_CUDA_NUM_THREADS>>>(count, ignore_label_, target, bottom_diff);
     }
+
     // Scale down gradient
+    // 归一化 loss 并放入 bottom_diff
     Dtype loss_weight = top[0]->cpu_diff()[0] / normalizer_;
     caffe_gpu_scal(count, loss_weight, bottom_diff);
   }

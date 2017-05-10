@@ -60,6 +60,7 @@ Dtype SigmoidCrossEntropyLossLayer<Dtype>::get_normalizer(
       normalizer = Dtype(this->outer_num_ * this->inner_num_);
       break;
     case LossParameter_NormalizationMode_VALID:
+      // normalizer 数值是 所有点数(或者所有有效点数)
       if (valid_count == -1) {
         normalizer = Dtype(this->outer_num_ * this->inner_num_);
       } else {
@@ -67,9 +68,11 @@ Dtype SigmoidCrossEntropyLossLayer<Dtype>::get_normalizer(
       }
       break;
     case LossParameter_NormalizationMode_BATCH_SIZE:
+      // normalizer 数值是 batchsize 
       normalizer = Dtype(this->outer_num_);
       break;
     case LossParameter_NormalizationMode_NONE:
+      // normalizer 数值是 1 (相当于没有归一化) 
       normalizer = Dtype(1);
       break;
     default:
@@ -91,7 +94,7 @@ void SigmoidCrossEntropyLossLayer<Dtype>::Forward_cpu(
   // Stable version of loss computation from input data
   // 获取只读 input_data 的指针
   const Dtype* input_data = bottom[0]->cpu_data();
-  // 获取只读 target 的指针
+  // 获取只读 target 的指针 (其实就是label)
   const Dtype* target = bottom[1]->cpu_data();
   int valid_count = 0;
   Dtype loss = 0;

@@ -120,7 +120,7 @@ class SigmoidCrossEntropyLossLayer : public LossLayer<Dtype> {
   shared_ptr<Blob<Dtype> > sigmoid_output_;
 
   /// bottom vector holder to call the underlying SigmoidLayer::Forward
-  // 用于存储所有的 bottom 的值，输入 SigmoildLayer::Forward 函数
+  // 用于存储所有的 bottom 的值，SigmoildLayer::Forward 函数的输入
   vector<Blob<Dtype>*> sigmoid_bottom_vec_;
 
   /// top vector holder to call the underlying SigmoidLayer::Forward
@@ -128,11 +128,11 @@ class SigmoidCrossEntropyLossLayer : public LossLayer<Dtype> {
   vector<Blob<Dtype>*> sigmoid_top_vec_;
 
   /// Whether to ignore instances with a certain label.
-  // 是否要忽略有确切的 label 的实例
+  // 是否要忽略指定 label 的实例
   bool has_ignore_label_;
 
   /// The label indicating that an instance should be ignored.
-  // 该标签 label 表示这个 instance 需要被忽略
+  // 该标签表示指定 label 的 instance 需要被忽略
   int ignore_label_;
 
   /// How to normalize the loss.

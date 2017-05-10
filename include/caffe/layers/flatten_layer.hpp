@@ -39,6 +39,7 @@ class FlattenLayer : public Layer<Dtype> {
    * @param top output Blob vector (length 1)
    *   -# @f$ (N \times CHW \times 1 \times 1) @f$
    *      the outputs -- i.e., the (virtually) copied, flattened inputs
+   * 单纯的维度变换, 把 (N,C,H,W) 结构搞成 (N,CHW,1,1) 结构
    */
   virtual void Forward_cpu(const vector<Blob<Dtype>*>& bottom,
       const vector<Blob<Dtype>*>& top);

@@ -111,6 +111,7 @@ void SoftmaxWithLossLayer<Dtype>::Forward_cpu(
   // dim == C * W * H
   for (int i = 0; i < outer_num_; ++i) {
     for (int j = 0; j < inner_num_; j++) {
+      // 从标签中获取该点的类别
       const int label_value = static_cast<int>(label[i * inner_num_ + j]);
       if (has_ignore_label_ && label_value == ignore_label_) {
         continue;
