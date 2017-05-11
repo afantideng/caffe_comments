@@ -54,7 +54,7 @@ void SigmoidCrossEntropyLossLayer<Dtype>::Forward_gpu(
   // Since this memory is not used for anything until it is overwritten
   // on the backward pass, we use it here to avoid having to allocate new GPU
   // memory to accumulate intermediate results in the kernel.
-  // 获取可变输入数据和标签
+  // 获取可写入输入数据和标签
   Dtype* loss_data = bottom[0]->mutable_gpu_diff();
   Dtype* count_data = bottom[1]->mutable_gpu_diff();
   Dtype valid_count;
@@ -92,7 +92,9 @@ void SigmoidCrossEntropyLossLayer<Dtype>::Backward_gpu(
   if (propagate_down[0]) {
     // First, compute the diff
     const int count = bottom[0]->count();
+    // 获取内嵌 sigmoid 函数的输出值
     const Dtype* sigmoid_output_data = sigmoid_output_->gpu_data();
+    // 获取标签
     const Dtype* target = bottom[1]->gpu_data();
     Dtype* bottom_diff = bottom[0]->mutable_gpu_diff();
     caffe_copy(count, sigmoid_output_data, bottom_diff);

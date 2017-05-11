@@ -287,6 +287,7 @@ message NetStateRule {
 
 // Specifies training parameters (multipliers on global learning constants,
 // and the name and other settings used for weight sharing).
+// 设置学习率就是在这个里面
 message ParamSpec {
   // The names of the parameter blobs -- useful for sharing parameters among
   // layers, but never required otherwise.  To share a parameter between two
@@ -316,9 +317,11 @@ message ParamSpec {
   optional float decay_mult = 4 [default = 1.0];
 }
 
+
 // NOTE
 // Update the next available ID when you add a new LayerParameter field.
 // LayerParameter next available layer-specific ID: 147 (last added: recurrent_param)
+// ！！！！ 我们在 prototxt 里面设计的每一个层，实际上都是基于这个message展开的 ！！！！！
 
 message LayerParameter {
   // Layer 名字
@@ -437,6 +440,10 @@ message LayerParameter {
   optional WindowDataParameter window_data_param = 129;
 }
 
+
+/*---------------------- 以下皆为各个不同的层的 message ------------------------*/
+
+
 // Message that stores parameters used to apply transformation
 // to the data layer's data
 message TransformationParameter {
@@ -445,8 +452,10 @@ message TransformationParameter {
   // out before scaling.
   optional float scale = 1 [default = 1];
   // Specify if we want to randomly mirror data.
+  // 镜像扩充
   optional bool mirror = 2 [default = false];
   // Specify if we would like to randomly crop an image.
+  // 随机剪切
   optional uint32 crop_size = 3 [default = 0];
   // mean_file and mean_value cannot be specified at the same time
   optional string mean_file = 4;
@@ -455,8 +464,10 @@ message TransformationParameter {
   // (would subtract them from the corresponding channel)
   repeated float mean_value = 5;
   // Force the decoded image to have 3 color channels.
+  // 强行使解压的图片包含三个颜色通道
   optional bool force_color = 6 [default = false];
   // Force the decoded image to have 1 color channels.
+  // 强行使解压的图片为单通道(灰度图)
   optional bool force_gray = 7 [default = false];
 }
 
@@ -468,18 +479,22 @@ message LossParameter {
   // How to normalize the loss for loss layers that aggregate across batches,
   // spatial dimensions, or other dimensions.  Currently only implemented in
   // SoftmaxWithLoss and SigmoidCrossEntropyLoss layers.
-  // 损失函数的归一化参数
+  // 损失函数的归一化方式(所除的分母)
   enum NormalizationMode {
     // Divide by the number of examples in the batch times spatial dimensions.
     // Outputs that receive the ignore label will NOT be ignored in computing
     // the normalization factor.
+    // 所有点的数量
     FULL = 0;
     // Divide by the total number of output locations that do not take the
     // ignore_label.  If ignore_label is not set, this behaves like FULL.
+    // 所有未被标注为ignore的点的数量
     VALID = 1;
     // Divide by the batch size.
+    // batch size 的数值
     BATCH_SIZE = 2;
     // Do not normalize the loss.
+    // 不归一化(除以1)
     NONE = 3;
   }
 
