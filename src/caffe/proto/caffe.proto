@@ -530,12 +530,14 @@ message AccuracyParameter {
 
 message ArgMaxParameter {
   // If true produce pairs (argmax, maxval)
+  // 如果为真则输出最大的编号和最大的数值(预测概率值)
   optional bool out_max_val = 1 [default = false];
   optional uint32 top_k = 2 [default = 1];
   // The axis along which to maximise -- may be negative to index from the
   // end (e.g., -1 for the last axis).
   // By default ArgMaxLayer maximizes over the flattened trailing dimensions
   // for each index of the first / num dimension.
+  // 进行排序的维度, 默认为每一层
   optional int32 axis = 3;
 }
 
