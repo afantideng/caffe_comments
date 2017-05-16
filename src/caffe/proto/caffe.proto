@@ -321,7 +321,7 @@ message ParamSpec {
 // NOTE
 // Update the next available ID when you add a new LayerParameter field.
 // LayerParameter next available layer-specific ID: 147 (last added: recurrent_param)
-// ！！！！ 我们在 prototxt 里面设计的每一个层，实际上都是基于这个message展开的 ！！！！！
+// ！！！！ 我们在 prototxt 里面设计的每一个层，实际上都是基于这个 message 展开的 ！！！！！
 
 message LayerParameter {
   // Layer 名字
