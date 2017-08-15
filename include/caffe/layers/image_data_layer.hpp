@@ -38,7 +38,7 @@ class ImageDataLayer : public BasePrefetchingDataLayer<Dtype> {
   virtual void load_batch(Batch<Dtype>* batch);
 
   vector<std::pair<std::string, int> > lines_;
-  int lines_id_;
+  int lines_id_;   // 这是一个全局的图片id标志, 当其达到数据集末尾时，重新置零循环读取
 };
 
 

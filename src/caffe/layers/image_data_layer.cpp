@@ -40,6 +40,7 @@ void ImageDataLayer<Dtype>::DataLayerSetUp(const vector<Blob<Dtype>*>& bottom,
   string line;
   size_t pos;
   int label;
+  // 读取图片名和标签存入字典 lines_ 中
   while (std::getline(infile, line)) {
     pos = line.find_last_of(' ');
     label = atoi(line.substr(pos + 1).c_str());
@@ -64,6 +65,7 @@ void ImageDataLayer<Dtype>::DataLayerSetUp(const vector<Blob<Dtype>*>& bottom,
 
   lines_id_ = 0;
   // Check if we would need to randomly skip a few data points
+  // 检查是否需要随机跳过一些data
   if (this->layer_param_.image_data_param().rand_skip()) {
     unsigned int skip = caffe_rng_rand() %
         this->layer_param_.image_data_param().rand_skip();
@@ -71,14 +73,20 @@ void ImageDataLayer<Dtype>::DataLayerSetUp(const vector<Blob<Dtype>*>& bottom,
     CHECK_GT(lines_.size(), skip) << "Not enough points to skip";
     lines_id_ = skip;
   }
+
   // Read an image, and use it to initialize the top blob.
+  // 读入一张图片，用来初始化top blob
   cv::Mat cv_img = ReadImageToCVMat(root_folder + lines_[lines_id_].first,
                                     new_height, new_width, is_color);
   CHECK(cv_img.data) << "Could not load " << lines_[lines_id_].first;
   // Use data_transformer to infer the expected blob shape from a cv_image.
+  // 使用 data_transformer 来预测 top blob 的形状
   vector<int> top_shape = this->data_transformer_->InferBlobShape(cv_img);
   this->transformed_data_.Reshape(top_shape);
+
+
   // Reshape prefetch_data and top[0] according to the batch_size.
+  // 用 batch_size 来决定 top_shape[0] 和 prefetch_ 的形状
   const int batch_size = this->layer_param_.image_data_param().batch_size();
   CHECK_GT(batch_size, 0) << "Positive batch size required";
   top_shape[0] = batch_size;
@@ -124,6 +132,7 @@ void ImageDataLayer<Dtype>::load_batch(Batch<Dtype>* batch) {
 
   // Reshape according to the first image of each batch
   // on single input batches allows for inputs of varying dimension.
+  // 先读一张图进来 reshape top blob
   cv::Mat cv_img = ReadImageToCVMat(root_folder + lines_[lines_id_].first,
       new_height, new_width, is_color);
   CHECK(cv_img.data) << "Could not load " << lines_[lines_id_].first;
@@ -149,6 +158,7 @@ void ImageDataLayer<Dtype>::load_batch(Batch<Dtype>* batch) {
     read_time += timer.MicroSeconds();
     timer.Start();
     // Apply transformations (mirror, crop...) to the image
+    // 使用 transformation 对图像做预处理
     int offset = batch->data_.offset(item_id);
     this->transformed_data_.set_cpu_data(prefetch_data + offset);
     this->data_transformer_->Transform(cv_img, &(this->transformed_data_));
@@ -159,6 +169,7 @@ void ImageDataLayer<Dtype>::load_batch(Batch<Dtype>* batch) {
     lines_id_++;
     if (lines_id_ >= lines_size) {
       // We have reached the end. Restart from the first.
+      // lines_id_ 到达最大值时候，置零实现循环读取
       DLOG(INFO) << "Restarting data prefetching from start.";
       lines_id_ = 0;
       if (this->layer_param_.image_data_param().shuffle()) {
